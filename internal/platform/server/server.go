@@ -4,19 +4,24 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Metalisaac321/stock-market-simulator/internal/platform/server/handler/health"
+	"github.com/Metalisaac321/stock-market-simulator/internal/creating"
+	"github.com/Metalisaac321/stock-market-simulator/internal/platform/server/handler/accounts"
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
 	httpAddr string
 	engine   *gin.Engine
+
+	//deps
+	accountService creating.AccountService
 }
 
-func New(host string, port uint) Server {
+func New(host string, port uint, accountService creating.AccountService) Server {
 	srv := Server{
-		engine:   gin.New(),
-		httpAddr: fmt.Sprintf("%s:%d", host, port),
+		engine:         gin.New(),
+		httpAddr:       fmt.Sprintf("%s:%d", host, port),
+		accountService: accountService,
 	}
 
 	srv.registerRoutes()
@@ -29,5 +34,5 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) registerRoutes() {
-	s.engine.GET("/health", health.CheckHandler())
+	s.engine.POST("/accounts", accounts.CreateHandler(s.accountService))
 }
