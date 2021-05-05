@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Metalisaac321/stock-market-simulator/internal/account"
+	accountMap "github.com/Metalisaac321/stock-market-simulator/internal/account/mapper"
 	"github.com/huandu/go-sqlbuilder"
 )
 
@@ -36,7 +37,6 @@ func (acccountRepository *AcccountRepository) Save(ctx context.Context, account 
 
 	_, err := acccountRepository.db.ExecContext(ctx, query, args...)
 	if err != nil {
-		fmt.Println(err)
 		return fmt.Errorf("error trying to persist account on database: %v", err)
 	}
 
@@ -44,9 +44,26 @@ func (acccountRepository *AcccountRepository) Save(ctx context.Context, account 
 }
 
 func (acccountRepository *AcccountRepository) SearchAll(ctx context.Context) ([]account.Account, error) {
-	a, _ := account.NewAccount("de82924b-8e16-431b-b945-5e4eaf6ecc29", 100)
+	query := sqlbuilder.NewSelectBuilder().Select("*").From(sqlAccountTable).String()
+	rows, err := acccountRepository.db.QueryContext(ctx, query)
 
-	accounts := []account.Account{a}
+	if err != nil {
+		return []account.Account{}, fmt.Errorf("error trying to query account on database: %v", err)
+	}
+
+	var accounts []account.Account
+
+	defer rows.Close()
+	for rows.Next() {
+		accountDto := accountMap.AccountDto{}
+		err = rows.Scan(&accountDto.Id, &accountDto.Cash)
+		if err != nil {
+			fmt.Println(err)
+			return []account.Account{}, fmt.Errorf("error trying to query account on database: %v", err)
+		}
+
+		accounts = append(accounts, accountMap.ToDomain(accountDto))
+	}
 
 	return accounts, nil
 }
