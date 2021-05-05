@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/Metalisaac321/stock-market-simulator/internal/creating"
+	"github.com/Metalisaac321/stock-market-simulator/internal/account/application"
+	"github.com/Metalisaac321/stock-market-simulator/internal/account/platform"
 	"github.com/Metalisaac321/stock-market-simulator/internal/platform/server"
-	"github.com/Metalisaac321/stock-market-simulator/internal/platform/storage/postgres"
 	_ "github.com/lib/pq"
 )
 
@@ -28,9 +28,10 @@ func Run() error {
 		return err
 	}
 
-	accountRepository := postgres.NewAcccountRepository(db)
-	accountService := creating.NewAccountService(accountRepository)
+	postgresAccountRepository := platform.NewAcccountRepository(db)
+	createAccount := application.NewCreateAccount(postgresAccountRepository)
+	searchAllAccounts := application.NewSearchAllAccounts(postgresAccountRepository)
 
-	srv := server.New(host, port, accountService)
+	srv := server.New(host, port, createAccount, searchAllAccounts)
 	return srv.Run()
 }

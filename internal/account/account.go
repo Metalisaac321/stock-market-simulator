@@ -1,4 +1,4 @@
-package mooc
+package account
 
 import (
 	"context"
@@ -83,4 +83,5 @@ func (a Account) Cash() AccountCash {
 // Repository
 type AccountRepository interface {
 	Save(ctx context.Context, account Account) error
+	SearchAll(ctx context.Context) ([]Account, error)
 }

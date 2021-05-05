@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	mooc "github.com/Metalisaac321/stock-market-simulator/internal"
-	"github.com/Metalisaac321/stock-market-simulator/internal/creating"
+	"github.com/Metalisaac321/stock-market-simulator/internal/account"
+	accountApplication "github.com/Metalisaac321/stock-market-simulator/internal/account/application"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +15,7 @@ type createRequest struct {
 }
 
 // CreateHandler returns an HTTP handler for courses creation.
-func CreateHandler(accountService creating.AccountService) gin.HandlerFunc {
+func CreateHandler(createAccount accountApplication.CreateAccount) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req createRequest
 		if err := ctx.BindJSON(&req); err != nil {
@@ -23,12 +23,12 @@ func CreateHandler(accountService creating.AccountService) gin.HandlerFunc {
 			return
 		}
 
-		err := accountService.CreateAccount(ctx, req.Id, req.Cash)
+		err := createAccount.Execute(ctx, req.Id, req.Cash)
 
 		if err != nil {
 			switch {
-			case errors.Is(err, mooc.ErrInvalidAccountId),
-				errors.Is(err, mooc.ErrInvalidAccountCash):
+			case errors.Is(err, account.ErrInvalidAccountId),
+				errors.Is(err, account.ErrInvalidAccountCash):
 				ctx.JSON(http.StatusBadRequest, err.Error())
 				return
 			default:
